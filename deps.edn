@@ -1,22 +1,27 @@
 {:paths ["src" "resources"]
 
  :deps {org.clojure/clojure       {:mvn/version "1.10.3"}
-        org.clojure/clojurescript {:mvn/version "1.10.866"}}
+        org.clojure/clojurescript {:mvn/version "1.10.866"}
+        funcool/promesa           {:mvn/version "8.0.446"}
+        metosin/jsonista          {:mvn/version "0.3.5"}
+        http-kit/http-kit         {:mvn/version "2.5.3"}}
 
  :aliases
- {:mvn/group-id com.fluree
+ {:mvn/group-id    com.fluree
   :mvn/artifact-id json-ld
-  :mvn/version "0.1.0"
+  :mvn/version     "0.1.0"
 
   :dev
   {:extra-paths ["dev", "test"]
-   :extra-deps {org.clojure/tools.namespace {:mvn/version "1.1.0"}
-                cheshire/cheshire           {:mvn/version "5.10.1"}}
+   :extra-deps  {org.clojure/tools.namespace {:mvn/version "1.1.0"}
+                 cheshire/cheshire           {:mvn/version "5.10.1"}
+
+                 metosin/malli {:mvn/version "0.8.4"}}
    :main-opts ["-e" "(require,'user)"
                "-e" "(in-ns,'user)"]}
 
   :test
-  {:extra-paths ["test"]
+  {:extra-paths ["test" "test-resources"]
    :extra-deps  {com.cognitect/test-runner
                  {:git/url "https://github.com/cognitect-labs/test-runner.git"
                   :sha     "b6b3193fcc42659d7e46ecd1884a228993441182"}}
