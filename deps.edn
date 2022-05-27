@@ -3,6 +3,7 @@
  :deps {org.clojure/clojure       {:mvn/version "1.10.3"}
         org.clojure/clojurescript {:mvn/version "1.10.866"}
         instaparse/instaparse     {:mvn/version "1.4.12"}
+        com.fluree/crypto         {:mvn/version "0.3.9"}
         lambdaisland/regal        {:mvn/version "0.0.143"}}
 
  :aliases
