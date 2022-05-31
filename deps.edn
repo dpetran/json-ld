@@ -1,10 +1,11 @@
 {:paths ["src" "resources"]
 
- :deps {org.clojure/clojure       {:mvn/version "1.10.3"}
-        org.clojure/clojurescript {:mvn/version "1.10.866"}
-        instaparse/instaparse     {:mvn/version "1.4.12"}
-        com.fluree/crypto         {:mvn/version "0.3.9"}
-        lambdaisland/regal        {:mvn/version "0.0.143"}}
+ :deps {org.clojure/clojure            {:mvn/version "1.10.3"}
+        org.clojure/clojurescript      {:mvn/version "1.10.866"}
+        org.clojure/math.combinatorics {:mvn/version "0.1.6"}
+        instaparse/instaparse          {:mvn/version "1.4.12"}
+        com.fluree/crypto              {:mvn/version "0.3.9"}
+        lambdaisland/regal             {:mvn/version "0.0.143"}}
 
  :aliases
  {:mvn/group-id    com.fluree
