@@ -65,16 +65,24 @@
     ""
     (let [output (reduce (fn [output segment]
                            (cond (= "." segment) output
-                                 (= ".." segment) (pop output)
+                                 (= ".." segment) (if (pos? (count output))
+                                                    (pop output)
+                                                    output)
                                  (some? segment) (conj output segment)))
                          []
                          (str/split path #"/"))
           ;; ensure output has trailing "/" when ending with a dot
-          output (if (str/ends-with? path ".")
+          output (if (or (str/ends-with? path ".")
+                         (not (str/blank? (last output))))
                    (conj output "")
+                   output)
+          ;; ensure output has leading "/" when path is absolute
+          output (if (and (= (first path) \/)
+                          (pos? (count output))
+                          (not= (first output) ""))
+                   (into [""] output)
                    output)]
       (str/join "/" output))))
-
 
 (defn parse
   "Parse the given uri string into a map of its components.
@@ -91,11 +99,12 @@
          matches (re-matches (:regex parser) s)
          {:keys [port scheme href authority path] :as parsed}
          (->> matches
-             (map (partial vector) (-> parsers parser-type :keys))
-             (into {}))]
+              (map (partial vector) (-> parsers parser-type :keys))
+              (into {}))]
      (cond-> (assoc parsed :normalized-path (remove-dot-segments path))
        (or (and (= "https" scheme) (= 443 port))
            (and (= "http" scheme) (= 80 port)))
+       ;; remove default ports
        (-> (assoc :href (str/replace href (str ":" port) "")
                   :authority (str/replace authority (str ":" port) ""))
            (dissoc :port))))))
@@ -112,7 +121,7 @@
               transform (cond-> {:protocol (:protocol base "")
                                  :authority (or (:authority rel) (:authority base))
                                  :path (remove-dot-segments
-                                         (cond (str/blank? (:path rel)) (:path base)
+                                         (cond (str/blank? (:path rel))           (:path base)
                                                (str/starts-with? (:path rel) "/") (:path rel)
                                                :else
                                                (str (:directory base) (:path rel))))
@@ -132,3 +141,56 @@
           (if (str/blank? rval)
             "./"
             rval))))
+
+(defn remove-base
+  [base iri]
+  (if (nil? base) iri
+      (let [base (parse (or base ""))
+            root (str (cond (not (str/blank? (:href base)))
+                            (str (:protocol base) "//" (:authority base))
+                            (not (str/starts-with? iri "//"))
+                            "//"))]
+        (if-not (str/starts-with? iri root)
+          iri                           ; IRI not relative to base
+          (let [rel (parse (subs iri (count root)))
+
+                [base-segments iri-segments]
+                (loop [base-segments (str/split (:normalized-path base) #"/" -1)
+                       iri-segments (str/split (:normalized-path rel) #"/" -1)]
+                  (if (and (pos? (count base-segments))
+                           (> (count iri-segments) (if (or (:fragment rel) (:query rel))
+                                                     0
+                                                     1))
+                           (= (first base-segments) (first iri-segments)))
+                    (recur (rest base-segments) (rest iri-segments))
+                    [base-segments iri-segments]))
+
+                rval (str (reduce (fn [rval _] (str rval  "../")) "" (butlast base-segments))
+                          (str/join "/" iri-segments)
+                          (when (:query rel)
+                            (str "?" (:query rel)))
+                          (when (:fragment rel)
+                            (str "#" (:fragment rel))))]
+            (if (str/blank? rval)
+              "./"
+              rval))))))
+
+(comment
+
+  (remove-base "http://schema.org/ideas/" "http://schema.org/ideas/my/idea")
+  "my/idea"
+  (prepend-base "http://schema.org/ideas/" "my/idea")
+  "http://schema.org/ideas/my/idea"
+
+  (remove-base "http://schema.org/animals/frogs" "http://schema.org/ideas/my/idea")
+  "../../ideas/my/idea/"
+  (prepend-base "http://schema.org/animals/frogs" "../../ideas/my/idea")
+  "http://schema.org/ideas/my/idea/"
+
+  (remove-base "http://schema.org/" "http://schema.org/ideas/my/idea?me=cool#yeah")
+  "ideas/my/idea?me=cool#yeah"
+  (prepend-base "http://schema.org/" "ideas/my/idea?me=cool#yeah")
+  "http://schema.org/ideas/my/idea?me=cool#yeah"
+
+
+  ,)
