@@ -20,5 +20,5 @@ jobs:
           cli: 'latest'
           bb: 'latest'
 
-      - name: Run jvm tests
+      - name: Run tests
         run: make test
