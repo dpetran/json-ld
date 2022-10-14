@@ -20,5 +20,8 @@ jobs:
           cli: 'latest'
           bb: 'latest'
 
+      - name: Prep tests
+        run: npm install
+
       - name: Run tests
         run: make test
